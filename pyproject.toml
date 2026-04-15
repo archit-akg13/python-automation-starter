@@ -1,0 +1,82 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "python-automation-starter"
+version = "0.1.0"
+description = "Production-ready Python automation boilerplate with CLI, logging, and config management"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.10"
+authors = [
+    {name = "Archit Mittal", email = "archit.akg13@gmail.com"},
+    ]
+    keywords = ["automation", "cli", "boilerplate", "logging", "devops"]
+    classifiers = [
+        "Development Status :: 4 - Beta",
+            "Intended Audience :: Developers",
+                "License :: OSI Approved :: MIT License",
+                    "Programming Language :: Python :: 3",
+                        "Programming Language :: Python :: 3.10",
+                            "Programming Language :: Python :: 3.11",
+                                "Programming Language :: Python :: 3.12",
+                                    "Topic :: Software Development :: Libraries :: Python Modules",
+                                        "Topic :: System :: Systems Administration",
+                                        ]
+                                        dependencies = [
+                                            "python-dotenv>=1.0.0",
+                                                "rich>=13.0.0",
+                                                    "httpx>=0.27.0",
+                                                        "tenacity>=8.2.0",
+                                                        ]
+
+                                                        [project.optional-dependencies]
+                                                        dev = [
+                                                            "pytest>=8.0.0",
+                                                                "pytest-cov>=4.1.0",
+                                                                    "pytest-asyncio>=0.23.0",
+                                                                        "ruff>=0.3.0",
+                                                                            "mypy>=1.8.0",
+                                                                                "pre-commit>=3.6.0",
+                                                                                ]
+
+                                                                                [project.scripts]
+                                                                                auto-starter = "main:main"
+
+                                                                                [project.urls]
+                                                                                Homepage = "https://github.com/archit-akg13/python-automation-starter"
+                                                                                Repository = "https://github.com/archit-akg13/python-automation-starter"
+                                                                                Issues = "https://github.com/archit-akg13/python-automation-starter/issues"
+
+                                                                                [tool.ruff]
+                                                                                target-version = "py310"
+                                                                                line-length = 100
+
+                                                                                [tool.ruff.lint]
+                                                                                select = ["E", "F", "I", "N", "W", "UP", "B", "SIM", "RUF"]
+                                                                                ignore = ["E501"]
+
+                                                                                [tool.pytest.ini_options]
+                                                                                testpaths = ["tests"]
+                                                                                pythonpath = ["."]
+                                                                                addopts = "-v --tb=short --strict-markers"
+                                                                                markers = [
+                                                                                    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+                                                                                        "integration: marks integration tests requiring external services",
+                                                                                        ]
+
+                                                                                        [tool.mypy]
+                                                                                        python_version = "3.10"
+                                                                                        warn_return_any = true
+                                                                                        warn_unused_configs = true
+                                                                                        disallow_untyped_defs = true
+                                                                                        check_untyped_defs = true
+
+                                                                                        [tool.coverage.run]
+                                                                                        source = ["."]
+                                                                                        omit = ["tests/*", "*.toml"]
+
+                                                                                        [tool.coverage.report]
+                                                                                        show_missing = true
+                                                                                        fail_under = 80
