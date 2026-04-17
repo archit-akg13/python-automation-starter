@@ -1,0 +1,111 @@
+"""Env loader — parse .env files and validate required variables.
+
+A minimal, zero-dependency .env reader that supports:
+  - KEY=value and KEY="value" forms
+    - Inline # comments and blank lines
+      - $REF / ${REF} expansion against already-loaded values
+        - A load_env(required=[...]) helper that raises on missing keys
+        """
+
+from __future__ import annotations
+
+import os
+import re
+from pathlib import Path
+from typing import Dict, Iterable, Mapping, Optional
+
+_ASSIGNMENT = re.compile(
+      r"^\s*(?:export\s+)?(?P<key>[A-Za-z_][A-Za-z0-9_]*)\s*=\s*(?P<value>.*?)\s*$"
+)
+_REF = re.compile(r"\$(?:\{([A-Za-z_][A-Za-z0-9_]*)\}|([A-Za-z_][A-Za-z0-9_]*))")
+
+
+class EnvError(RuntimeError):
+      """Raised when required environment variables are missing or invalid."""
+
+
+def _strip_quotes(value: str) -> str:
+      if len(value) >= 2 and value[0] == value[-1] and value[0] in ('"', "'"):
+                return value[1:-1]
+            return value
+
+
+def _strip_inline_comment(value: str) -> str:
+      """Strip an inline # comment from an unquoted value."""
+    if value.startswith(('"', "'")):
+              return value
+          idx = value.find(" #")
+    return value[:idx] if idx != -1 else value
+
+
+def _expand(value: str, current: Mapping[str, str]) -> str:
+      """Expand $VAR and ${VAR} references using current + os.environ."""
+    def repl(m: "re.Match[str]") -> str:
+              key = m.group(1) or m.group(2)
+              return current.get(key, os.environ.get(key, ""))
+
+    return _REF.sub(repl, value)
+
+
+def parse_env_file(path) -> Dict[str, str]:
+      """Parse a .env file and return a dict of KEY -> value."""
+    result: Dict[str, str] = {}
+    text = Path(path).read_text(encoding="utf-8")
+    for raw_line in text.splitlines():
+              line = raw_line.strip()
+              if not line or line.startswith("#"):
+                            continue
+                        match = _ASSIGNMENT.match(line)
+        if not match:
+                      continue
+                  key = match.group("key")
+        value = match.group("value")
+        value = _strip_inline_comment(value).rstrip()
+        value = _strip_quotes(value)
+        value = _expand(value, result)
+        result[key] = value
+    return result
+
+
+def load_env(
+      path=".env",
+      override: bool = False,
+      required: Optional[Iterable[str]] = None,
+) -> Dict[str, str]:
+      """Load a .env file into os.environ and return the parsed dict."""
+    parsed = parse_env_file(path)
+    for key, value in parsed.items():
+              if override or key not in os.environ:
+                            os.environ[key] = value
+                    if required:
+                              require(required)
+                          return parsed
+
+
+def require(keys: Iterable[str]) -> None:
+      """Ensure all listed env var keys are set and non-empty, or raise."""
+    missing = [k for k in keys if not os.environ.get(k)]
+    if missing:
+              raise EnvError(
+                  f"Missing required environment variables: {', '.join(missing)}"
+    )
+
+
+if __name__ == "__main__":
+      import tempfile
+
+    sample = (
+              "# demo .env\n"
+              'API_KEY="sk-abc123"  # inline comment\n'
+              "REGION=us-east-1\n"
+              "BUCKET=backups-${REGION}\n"
+              "\n"
+              "export PORT=8080\n"
+    )
+    with tempfile.NamedTemporaryFile("w", suffix=".env", delete=False) as f:
+              f.write(sample)
+        tmp_path = f.name
+
+    cfg = parse_env_file(tmp_path)
+    for key, value in cfg.items():
+              print(f"{key}={value}")
