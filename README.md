@@ -13,6 +13,7 @@ Stop copying `if __name__ == "__main__":` boilerplate from your last script. Clo
 | `retry.py` | Decorator for exponential-backoff retries with jitter and max attempts |
 | `pyproject.toml` | PEP 621 metadata, ruff + mypy config, `pytest` discovery rules |
 | `tests/` | Smoke tests for each module — patterns to copy when you add new ones |
+| `examples/upi_reconcile.py` | Reconciles PhonePe/GPay/Paytm CSV exports into one Excel file with monthly category totals |
 
 ## Getting Started
 
