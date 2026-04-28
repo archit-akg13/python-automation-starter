@@ -71,3 +71,33 @@ make docker    # build the image
 MIT — fork it, rename it, ship it.
 # python-automation-starter
 Production-ready Python automation boilerplate — argparse CLI, structured logging, .env config, Makefile, and Docker support.
+
+## Project layout
+
+The template is intentionally small. Everything you might want to delete on a real project lives in `examples/` or `tests/`, so the root stays scannable.
+
+```
+python-automation-starter/
+  main.py            # argparse entrypoint with subcommands
+  env_loader.py      # .env parsing with type coercion
+  retry.py           # backoff decorator with jitter
+  pyproject.toml     # ruff, mypy, pytest config
+  examples/          # delete or replace these
+  tests/             # smoke tests for retry and env_loader
+```
+
+## Why subcommands instead of separate scripts
+
+A single `main.py` with subcommands gives you one place to put shared concerns: logging setup, the global `--log-level` flag, signal handlers for clean shutdown. Each subcommand stays small because the boring plumbing only exists once. When you copy this repo to start a new tool, you keep that single entrypoint and add a new subcommand under `main.py` rather than duplicating boilerplate across N scripts.
+
+## Development workflow
+
+The `Makefile` exposes the four commands you actually run during development:
+
+  make install   installs the project in editable mode with dev extras
+    make lint      runs ruff check and mypy in one pass
+      make test      runs pytest with coverage and fails if coverage drops below 80 percent
+        make run       runs main.py with sensible defaults for local exploration
+
+        If you don't have make installed, the README of each subcommand shows the equivalent raw commands.
+        
